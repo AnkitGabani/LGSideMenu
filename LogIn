@@ -1,0 +1,10 @@
+
+
+let home: DashBoardViewController = self.storyboard!.instantiateViewController(withIdentifier: "DashBoardViewController") as! DashBoardViewController
+                let homeNavigation = UINavigationController(rootViewController: home)
+                let mainViewController = self.storyboard!.instantiateViewController(withIdentifier: "MainViewController") as! MainViewController
+                mainViewController.rootViewController = homeNavigation
+                mainViewController.setup(type: 1)
+                let window = UIApplication.shared.delegate!.window!!
+                window.rootViewController = mainViewController
+                UIView.transition(with: window, duration: 0.5, options: [.transitionCrossDissolve], animations: nil, completion: nil)
