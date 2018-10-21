@@ -1,0 +1,291 @@
+class LeftMenuViewController: UIViewController,UITableViewDelegate,UITableViewDataSource
+{
+    //MARK:- Outlet
+    @IBOutlet weak var tableMenu: UITableView!
+    let custObj: customClassViewController = customClassViewController()
+    var arrOfOptions: NSMutableArray = NSMutableArray()
+    let appDel: AppDelegate = UIApplication.shared.delegate as! AppDelegate
+
+    @IBOutlet weak var lblUserName: UILabel!
+    @IBOutlet weak var viewBizTypePopUp: UIView!
+    @IBOutlet weak var lblUserMobNumber: UILabel!
+    @IBOutlet weak var imgProfileOutlet: UIImageView!
+    
+    // Define identifier
+    let notificationRough = Notification.Name("setRoughBiz")
+    let notificationPolished = Notification.Name("setPolishedBiz")
+
+    //MARK:- View Cycle
+    override func viewDidLoad()
+    {
+        super.viewDidLoad()
+        NotificationCenter.default.addObserver(self, selector: #selector(self.updateProfilePic(notification:)), name: NSNotification.Name(rawValue: "updateProfilePic"), object: nil)
+        
+        
+        self.tableMenu.delegate = self
+        self.tableMenu.dataSource = self
+        self.tableMenu.separatorStyle = .none
+        self.tableMenu.tableFooterView = UIView.init(frame: CGRect.zero)
+        //self.view.backgroundColor = UIColor.init(red: 49/255.0, green: 49/255.0, blue: 49/255.0, alpha: 1)
+        //self.tableMenu.backgroundColor = UIColor.clear
+
+        NotificationCenter.default.addObserver(self, selector: #selector(self.logout(notification:)), name: NSNotification.Name(rawValue: "logout"), object: nil)
+        self.setupArray()
+    }
+    
+    override func didReceiveMemoryWarning()
+    {
+        super.didReceiveMemoryWarning()
+    }
+    
+    override func viewWillAppear(_ animated: Bool)
+    {
+        let dict : NSMutableDictionary = API.getLoggedUserData()
+        lblUserName.text = String(format: "%@", (dict.object(forKey: "FirstName") as! String))
+        lblUserName.text = lblUserName.text?.uppercased()
+        lblUserMobNumber.text = (dict.object(forKey: "MobileNumber") as! String)
+    }
+    
+    //MARK:- Setup Menu
+    func logout(notification:Notification) -> Void
+    {
+        API.setIsLogin(type: false)
+        custObj.alertMessage("Your session is expired! Please login again")
+        let obj: LoginViewController = self.storyboard!.instantiateViewController(withIdentifier: "LoginViewController") as! LoginViewController
+        let homeNavigation = UINavigationController(rootViewController: obj)
+        let window = UIApplication.shared.delegate!.window!!
+        window.rootViewController = homeNavigation
+        UIView.transition(with: window, duration: 0.5, options: [.transitionCrossDissolve], animations: nil, completion: nil)
+    }
+
+    func updateProfilePic(notification:Notification) -> Void
+    {
+        //        let dict : NSDictionary = UserDefaults.standard.object(forKey: LOGGED_IN_USER_DETAIL) as! NSDictionary
+        //        let avtarBaseURL : String = String.init(format: "%@/", API.getBaseURL())
+        //        imgProfileImage.sd_setImage(with: URL.init(string: String.init(format: "%@%@", avtarBaseURL,dict.object(forKey: "picture") as! String)), placeholderImage: UIImage.init(named: "ic_user.png"), options: SDWebImageOptions.progressiveDownload)
+        //        lblUsername.text = (dict.object(forKey: "name") as! String)
+    }
+    
+    func setupArray()
+    {
+        arrOfOptions = NSMutableArray()
+        var d: NSMutableDictionary = NSMutableDictionary()
+        //        d.setValue("Home", forKey: "name")
+        //        d.setValue("home", forKey: "image")
+        //        d.setValue(false, forKey: "isSelected")
+        //        arrOfOptions.add(d)
+        
+        d = NSMutableDictionary()
+        d.setValue("Home", forKey: "name")
+        d.setValue("leftMenu_home", forKey: "image")
+        d.setValue(false, forKey: "isSelected")
+        arrOfOptions.add(d)
+        
+        d = NSMutableDictionary()
+        d.setValue("My Biz", forKey: "name")
+        d.setValue("leftMenu_myBiz", forKey: "image")
+        d.setValue(false, forKey: "isSelected")
+        arrOfOptions.add(d)
+        
+        d = NSMutableDictionary()
+        d.setValue("My Profile", forKey: "name")
+        d.setValue("leftMenu_myProfile", forKey: "image")
+        d.setValue(false, forKey: "isSelected")
+        arrOfOptions.add(d)
+        
+        d = NSMutableDictionary()
+        d.setValue("Price List", forKey: "name")
+        d.setValue("leftMenu_priceList", forKey: "image")
+        d.setValue(false, forKey: "isSelected")
+        arrOfOptions.add(d)
+
+        d = NSMutableDictionary()
+        d.setValue("Payment Outstanding", forKey: "name")
+        d.setValue("leftMenu_paymentOutstanding", forKey: "image")
+        d.setValue(false, forKey: "isSelected")
+        arrOfOptions.add(d)
+        
+        d = NSMutableDictionary()
+        d.setValue("Payment Receipt Report", forKey: "name")
+        d.setValue("leftMenu_paymentReceiptReport", forKey: "image")
+        d.setValue(false, forKey: "isSelected")
+        arrOfOptions.add(d)
+
+        d = NSMutableDictionary()
+        d.setValue("My Party", forKey: "name")
+        d.setValue("party", forKey: "image")
+        d.setValue(false, forKey: "isSelected")
+        arrOfOptions.add(d)
+        
+        d = NSMutableDictionary()
+        d.setValue("My Stock", forKey: "name")
+        d.setValue("leftMenu_setting", forKey: "image")
+        d.setValue(false, forKey: "isSelected")
+        arrOfOptions.add(d)
+        
+        d = NSMutableDictionary()
+        d.setValue("Settings", forKey: "name")
+        d.setValue("leftMenu_setting", forKey: "image")
+        d.setValue(false, forKey: "isSelected")
+        arrOfOptions.add(d)
+        
+        self.tableMenu.reloadData()
+
+    }
+
+    //MARK:- Action Method
+    @IBAction func btnAddNewBizAction(_ sender: Any)
+    {
+        self.hideLeftViewAnimated(self)
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "addNewBizPostNoti"), object: nil)
+    }
+    
+    //MARK:- tableView delegate
+    private func numberOfSectionsInTableView(tableView: UITableView) -> Int
+    {
+        return 1
+    }
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int
+    {
+        return self.arrOfOptions.count;
+    }
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
+    {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "menuCell", for: indexPath as IndexPath) as! menuCell
+
+     
+        let dict: NSMutableDictionary = arrOfOptions.object(at: indexPath.row) as! NSMutableDictionary
+        cell.lblmenuName.text = dict.object(forKey: "name") as! String?
+        cell.lblMenuImage.image = UIImage(named: dict.object(forKey: "image") as! String)
+        cell.lblMenuImage.contentMode = UIViewContentMode.scaleToFill;
+        cell.layer.borderWidth = 0.0
+        cell.contentView.layer.borderWidth = 0.0
+        
+        cell.backgroundColor = UIColor.white
+        if appDel.selectedMenuIndex == indexPath.row
+        {
+            cell.lblDriver.backgroundColor = API.themeColor()
+            cell.lblBackground.backgroundColor = API.menuSelection()
+        }
+        else
+        {
+            cell.lblDriver.backgroundColor = UIColor.white
+            cell.lblBackground.backgroundColor = UIColor.white
+        }
+        return cell
+    }
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath)
+    {
+        appDel.selectedMenuIndex = indexPath.row
+        tableMenu.reloadData()
+        let dict: NSMutableDictionary = arrOfOptions.object(at: indexPath.row) as! NSMutableDictionary
+        if dict.object(forKey: "name") as! String? == "Home"
+        {
+            let obj: DashBoardViewController = self.storyboard!.instantiateViewController(withIdentifier: "DashBoardViewController") as! DashBoardViewController
+            let objNavigation = UINavigationController(rootViewController: obj)
+            let mainViewController = self.storyboard!.instantiateViewController(withIdentifier: "MainViewController") as! MainViewController
+            mainViewController.rootViewController = objNavigation
+            mainViewController.setup(type: 6)
+            let window = UIApplication.shared.delegate!.window!!
+            window.rootViewController = mainViewController
+            UIView.transition(with: window, duration: 0.5, options: [.transitionCrossDissolve], animations: nil, completion: nil)
+            
+        }
+        else if dict.object(forKey: "name") as! String? == "My Biz"
+        {
+            let obj: MyBizViewController = self.storyboard!.instantiateViewController(withIdentifier: "MyBizViewController") as! MyBizViewController
+            let objNavigation = UINavigationController(rootViewController: obj)
+            let mainViewController = self.storyboard!.instantiateViewController(withIdentifier: "MainViewController") as! MainViewController
+            mainViewController.rootViewController = objNavigation
+            mainViewController.setup(type: 6)
+            let window = UIApplication.shared.delegate!.window!!
+            window.rootViewController = mainViewController
+            UIView.transition(with: window, duration: 0.5, options: [.transitionCrossDissolve], animations: nil, completion: nil)
+        }
+        else if dict.object(forKey: "name") as! String? == "My Profile"
+        {
+            
+            let obj: MyProfileViewController = self.storyboard!.instantiateViewController(withIdentifier: "MyProfileViewController") as! MyProfileViewController
+            let objNavigation = UINavigationController(rootViewController: obj)
+            let mainViewController = self.storyboard!.instantiateViewController(withIdentifier: "MainViewController") as! MainViewController
+            mainViewController.rootViewController = objNavigation
+            mainViewController.setup(type: 6)
+            let window = UIApplication.shared.delegate!.window!!
+            window.rootViewController = mainViewController
+            UIView.transition(with: window, duration: 0.5, options: [.transitionCrossDissolve], animations: nil, completion: nil)
+        }
+        else if dict.object(forKey: "name") as! String? == "Price List"
+        {
+            let obj: PriceListViewController = self.storyboard!.instantiateViewController(withIdentifier: "PriceListViewController") as! PriceListViewController
+            let objNavigation = UINavigationController(rootViewController: obj)
+            let mainViewController = self.storyboard!.instantiateViewController(withIdentifier: "MainViewController") as! MainViewController
+            mainViewController.rootViewController = objNavigation
+            mainViewController.setup(type: 6)
+            let window = UIApplication.shared.delegate!.window!!
+            window.rootViewController = mainViewController
+            UIView.transition(with: window, duration: 0.5, options: [.transitionCrossDissolve], animations: nil, completion: nil)
+        }
+        else if dict.object(forKey: "name") as! String? == "Payment Outstanding"
+        {
+            let obj: PaymentOutstandingViewController = self.storyboard!.instantiateViewController(withIdentifier: "PaymentOutstandingViewController") as! PaymentOutstandingViewController
+            let objNavigation = UINavigationController(rootViewController: obj)
+            let mainViewController = self.storyboard!.instantiateViewController(withIdentifier: "MainViewController") as! MainViewController
+            mainViewController.rootViewController = objNavigation
+            mainViewController.setup(type: 6)
+            let window = UIApplication.shared.delegate!.window!!
+            window.rootViewController = mainViewController
+            UIView.transition(with: window, duration: 0.5, options: [.transitionCrossDissolve], animations: nil, completion: nil)
+        }
+        else if dict.object(forKey: "name") as! String? == "Payment Receipt Report"
+        {
+            let obj: PaymentReceiptReportViewController = self.storyboard!.instantiateViewController(withIdentifier: "PaymentReceiptReportViewController") as! PaymentReceiptReportViewController
+            let objNavigation = UINavigationController(rootViewController: obj)
+            let mainViewController = self.storyboard!.instantiateViewController(withIdentifier: "MainViewController") as! MainViewController
+            mainViewController.rootViewController = objNavigation
+            mainViewController.setup(type: 6)
+            let window = UIApplication.shared.delegate!.window!!
+            window.rootViewController = mainViewController
+            UIView.transition(with: window, duration: 0.5, options: [.transitionCrossDissolve], animations: nil, completion: nil)
+        }
+        else if dict.object(forKey: "name") as! String? == "My Party"
+        {
+            let obj: SearchPartyViewController = self.storyboard!.instantiateViewController(withIdentifier: "SearchPartyViewController") as! SearchPartyViewController
+            let objNavigation = UINavigationController(rootViewController: obj)
+            let mainViewController = self.storyboard!.instantiateViewController(withIdentifier: "MainViewController") as! MainViewController
+            mainViewController.rootViewController = objNavigation
+            mainViewController.setup(type: 6)
+            let window = UIApplication.shared.delegate!.window!!
+            window.rootViewController = mainViewController
+            UIView.transition(with: window, duration: 0.5, options: [.transitionCrossDissolve], animations: nil, completion: nil)
+        }
+        else if dict.object(forKey: "name") as! String? == "My Stock"
+        {
+            let obj: MyStockViewController = self.storyboard!.instantiateViewController(withIdentifier: "MyStockViewController") as! MyStockViewController
+            let objNavigation = UINavigationController(rootViewController: obj)
+            let mainViewController = self.storyboard!.instantiateViewController(withIdentifier: "MainViewController") as! MainViewController
+            mainViewController.rootViewController = objNavigation
+            mainViewController.setup(type: 6)
+            let window = UIApplication.shared.delegate!.window!!
+            window.rootViewController = mainViewController
+            UIView.transition(with: window, duration: 0.5, options: [.transitionCrossDissolve], animations: nil, completion: nil)
+        }
+        else if dict.object(forKey: "name") as! String? == "Settings"
+        {
+            let obj: SettingViewController = self.storyboard!.instantiateViewController(withIdentifier: "SettingViewController") as! SettingViewController
+            let objNavigation = UINavigationController(rootViewController: obj)
+            let mainViewController = self.storyboard!.instantiateViewController(withIdentifier: "MainViewController") as! MainViewController
+            mainViewController.rootViewController = objNavigation
+            mainViewController.setup(type: 6)
+            let window = UIApplication.shared.delegate!.window!!
+            window.rootViewController = mainViewController
+            UIView.transition(with: window, duration: 0.5, options: [.transitionCrossDissolve], animations: nil, completion: nil)
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat
+    {
+        return 44
+    }
+    
+}
+
