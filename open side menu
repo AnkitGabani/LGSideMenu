@@ -1,0 +1,5 @@
+// open side menu
+
+self. self.openLeftView(self)
+
+or  dragn drop touch in side (main strory bord)
